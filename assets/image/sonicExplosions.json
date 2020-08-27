@@ -1,0 +1,75 @@
+{"frames": [
+
+{
+	"filename": "sonicExplosion00.png",
+	"frame": {"x":190,"y":291,"w":192,"h":192},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":192,"h":192},
+	"sourceSize": {"w":192,"h":192}
+},
+{
+	"filename": "sonicExplosion01.png",
+	"frame": {"x":292,"y":140,"w":152,"h":150},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":152,"h":150},
+	"sourceSize": {"w":152,"h":150}
+},
+{
+	"filename": "sonicExplosion02.png",
+	"frame": {"x":0,"y":291,"w":190,"h":190},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":190,"h":190},
+	"sourceSize": {"w":190,"h":190}
+},
+{
+	"filename": "sonicExplosion03.png",
+	"frame": {"x":0,"y":483,"w":284,"h":284},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":284,"h":284},
+	"sourceSize": {"w":284,"h":284}
+},
+{
+	"filename": "sonicExplosion04.png",
+	"frame": {"x":0,"y":0,"w":120,"h":124},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":120,"h":124},
+	"sourceSize": {"w":120,"h":124}
+},
+{
+	"filename": "sonicExplosion05.png",
+	"frame": {"x":120,"y":0,"w":133,"h":134},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":134},
+	"sourceSize": {"w":133,"h":134}
+},
+{
+	"filename": "sonicExplosion06.png",
+	"frame": {"x":253,"y":0,"w":138,"h":140},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":138,"h":140},
+	"sourceSize": {"w":138,"h":140}
+},
+{
+	"filename": "sonicExplosion07.png",
+	"frame": {"x":0,"y":140,"w":143,"h":144},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":143,"h":144},
+	"sourceSize": {"w":143,"h":144}
+},
+{
+	"filename": "sonicExplosion08.png",
+	"frame": {"x":143,"y":140,"w":149,"h":151},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":149,"h":151},
+	"sourceSize": {"w":149,"h":151}
+}]
+}
