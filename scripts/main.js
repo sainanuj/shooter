@@ -518,7 +518,7 @@ Ship.prototype.draw = function(ctx) {
 Ship.prototype.shoot = function() {
     let bullet = new Bullet(this.game, this);
     this.game.addEntity(bullet);
-    // ASSET_MANAGER.getAsset(pew).play();
+    ASSET_MANAGER.getAsset(pew).play();
 }
 
 
