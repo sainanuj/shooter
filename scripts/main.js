@@ -6,6 +6,13 @@ let ASSET_MANAGER;
 function resize(w, h) {
     canvas.width = w;
     canvas.height = h;
+
+    if (game.ship) {
+        game.ship.y = h-game.ship.height;
+        if (!game.bullet.fired) {
+            game.bullet.y = game.ship.y - game.bullet.height;
+        }
+    }
 }
 
 window.onload = () => {
@@ -336,11 +343,20 @@ GameEngine.prototype.startInput = function() {
         return {x: x, y: y};
     }
 
-    this.ctx.canvas.addEventListener('touchmove', function(e) {
-        that.touch = getXandY(e);
-        e.stopPropagation();
-        e.preventDefault();
-    }, false);
+    // let getXandY = function(e) {
+    //     let x, y;
+    //     if (e.type == 'touchstart' || e.type == 'touchmove' ||
+    //     e.type == 'touchend' || e.type == 'touchcancel') {
+    //         x = e.touches[0].clientX;
+    //         y = e.touches[0].clientY;
+    //     } else if (e.type == 'mousedown' || e.type == 'mouseup' ||
+    //     e.type == 'mousemove' || e.type == 'mouseover' ||
+    //     e.type == 'mouseout' || e.type == 'mouseenter' || e.type == 'mouseleave') {
+    //         x = e.clientY;
+    //         y = e.clientY;
+    //     }
+    //     return {x: x, y: y};
+    // }
 
     this.ctx.canvas.addEventListener('mousemove', function(e) {
         that.mouse = getXandY(e);
@@ -372,7 +388,7 @@ GameEngine.prototype.addEntity = function(entity) {
 
 GameEngine.prototype.draw = function(callback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.ctx.drawImage(ASSET_MANAGER.getAsset('assets/image/spacebg.jpg'), 0, 0, ctx.canvas.width, ctx.canvas.height);
+    this.ctx.drawImage(ASSET_MANAGER.getAsset(backgroundImage), 0, 0, ctx.canvas.width, ctx.canvas.height);
     for (let i=0; i<this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
     }
@@ -419,8 +435,8 @@ Entity.prototype.update = function() {
 Entity.prototype.draw = function() {
     if (this.game.showOutlines && this.radius) {
         ctx.beginPath();
-        ctx.strokeStyle = "yellow";
-        ctx.arc(this.x+this.radius+1, this.y+this.radius+1, this.radius, 0, Math.PI*2, false);
+        ctx.strokeStyle = "cyan";
+        ctx.arc(this.x+(this.radius)+1, this.y+(this.radius)+1, this.radius, 0, Math.PI*2, false);
         ctx.stroke();
         ctx.closePath();
     }
@@ -454,20 +470,29 @@ Entity.prototype.rotateAndCache = function(image, angle) {
     return offscreenCanvas;
 }
 
+function radius(width, height) {
+    return Math.sqrt(Math.pow(width,2), Math.powheight,2)/2;
+}
+
 function Ship(game) {
-    this.sprite = ASSET_MANAGER.getAsset('assets/image/playerShip1_orange.png');
-    this.x = 100-this.sprite.width/2;
-    this.y = window.innerHeight-this.sprite.height/2;
+    this.sprite = ASSET_MANAGER.getAsset(batttleship);
     this.width = this.sprite.width*.5;
     this.height = this.sprite.height*.5;
-    this.radius = Math.sqrt(Math.pow(this.width,2), Math.pow(this.height,2 ))/2;
+    this.x = game.ctx.canvas.width/2;
+    this.y = window.innerHeight - this.height;
+    this.radius = radius(this.width, this.height);
     Entity.call(this, game, this.x, this.y, this.radius);
+    this.ticks = 0;
 }
 
 Ship.prototype = new Entity();
 Ship.prototype.constructor = Ship;
 
 Ship.prototype.update = function() {
+    if (this.game.touch) {
+        this.x = this.game.touch.x;
+    }
+
     if (this.game.mouse) {
         this.x = this.game.mouse.x;
     }
@@ -477,6 +502,12 @@ Ship.prototype.update = function() {
     if (this.x+this.width>this.game.ctx.canvas.width) {
         this.x = this.game.ctx.canvas.width-this.width;
     }
+
+    this.ticks += this.game.clockTick;
+    if (this.ticks > 2) {
+        this.ticks = 0;
+        this.shoot();
+    }
 }
 
 Ship.prototype.draw = function(ctx) {
@@ -484,6 +515,51 @@ Ship.prototype.draw = function(ctx) {
     ctx.drawImage(this.sprite, this.x, this.y, this.width, this.height);
 }
 
+Ship.prototype.shoot = function() {
+    let bullet = new Bullet(this.game, this);
+    this.game.addEntity(bullet);
+    // ASSET_MANAGER.getAsset(pew).play();
+}
+
+
+function Bullet(game, ship) {
+    this.ship = ship;
+    this.fired = true;
+    this.sprite = ASSET_MANAGER.getAsset(bullet)
+
+    this.width = this.sprite.width * .9;
+    this.height = this.sprite.height * .5;
+
+    this.x = ship.x + this.ship.width/2 - this.width/2;
+    this.y = ship.y - this.ship.height/3 - this.height/2;
+    this.radius = radius(this.width, this.height);
+    Entity.call(this, game, this.x, this.y, this.radius);
+}
+
+Bullet.prototype = new Entity();
+Bullet.prototype.constructor = Bullet;
+
+Bullet.prototype.update = function() {
+    if (!this.fired) {
+        this.x = this.ship.x + this.ship.width/2;
+    } else {
+        this.y -= .5;
+    }
+    if (this.outsideOfScreen(this.width, this.height)) {
+        this.removeFromWorld = true;
+    }
+
+    if (this.game.click) {
+        this.shoot();
+    }
+}
+
+Bullet.prototype.draw = function(ctx) {
+    if (this.fired) {
+        Entity.prototype.draw.call(this);
+        ctx.drawImage(this.sprite, this.x, this.y, this.width, this.height);
+    }
+}
 
 function Shooter() {
     GameEngine.call(this);
@@ -497,18 +573,27 @@ Shooter.prototype.constructor = Shooter;
 
 Shooter.prototype.start = function() {
     this.ship = new Ship(this);
+    this.bullet = new Bullet(this, this.ship);
+
     this.addEntity(this.ship);
+    this.addEntity(this.bullet);
     GameEngine.prototype.start.call(this);
 }
 
 let game = new Shooter();
 ASSET_MANAGER = new AssetManager();
 
-ASSET_MANAGER.queueDownload('assets/image/spacebg.jpg');
-ASSET_MANAGER.queueDownload('assets/image/starfield.png');
-ASSET_MANAGER.queueDownload('assets/image/playerShip1_orange.png')
+let backgroundImage = 'assets/image/starfield.png';
+let bullet = 'assets/image/laserRed16.png';
+let batttleship = 'assets/image/playerShip1_orange.png';
 
-ASSET_MANAGER.queueSound('assets/sound/pew.wav');
+let pew = 'assets/sound/pew.wav';
+
+ASSET_MANAGER.queueDownload(backgroundImage);
+ASSET_MANAGER.queueDownload(batttleship);
+ASSET_MANAGER.queueDownload(bullet);
+
+ASSET_MANAGER.queueSound(pew);
 
 ASSET_MANAGER.downloadAll(function() {
     game.init(ctx);
