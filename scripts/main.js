@@ -483,6 +483,13 @@ function Ship(game) {
     this.radius = radius(this.width, this.height);
     Entity.call(this, game, this.x, this.y, this.radius);
     this.ticks = 0;
+    
+    // Background music
+    this.bgm = ASSET_MANAGER.getAsset(backgroundMusic);
+    if (playSound) {
+        this.bgm.play();
+        this.bgm.loop = true
+    }
 }
 
 Ship.prototype = new Entity();
@@ -504,7 +511,7 @@ Ship.prototype.update = function() {
     }
 
     this.ticks += this.game.clockTick;
-    if (this.ticks > 2) {
+    if (this.ticks > .5) {
         this.ticks = 0;
         this.shoot();
     }
@@ -518,7 +525,9 @@ Ship.prototype.draw = function(ctx) {
 Ship.prototype.shoot = function() {
     let bullet = new Bullet(this.game, this);
     this.game.addEntity(bullet);
-    ASSET_MANAGER.getAsset(pew).play();
+    if (playSound) {
+        ASSET_MANAGER.getAsset(pew).play();
+    }
 }
 
 
@@ -543,7 +552,7 @@ Bullet.prototype.update = function() {
     if (!this.fired) {
         this.x = this.ship.x + this.ship.width/2;
     } else {
-        this.y -= .5;
+        this.y -= 3;
     }
     if (this.outsideOfScreen(this.width, this.height)) {
         this.removeFromWorld = true;
@@ -565,7 +574,7 @@ function Shooter() {
     GameEngine.call(this);
     this.lives = 10;
     this.score = 0;
-    this.showOutlines = true;
+    this.showOutlines = true;;
 }
 
 Shooter.prototype = new GameEngine();
@@ -580,6 +589,25 @@ Shooter.prototype.start = function() {
     GameEngine.prototype.start.call(this);
 }
 
+let mainMenu = document.getElementById("menu");
+let play = document.getElementById("play");
+let soundStatus = document.getElementById("toggle_sound");
+
+soundStatus.onclick = () => {
+    switch (soundStatus.value) {
+        case "on":
+            soundStatus.value = "off";
+            soundStatus.innerHTML = "Sound: Off";
+            break;
+        case "off":
+            soundStatus.value = "on";
+            soundStatus.innerHTML = "Sound: On";
+            break;        
+    }
+}
+
+let playSound;
+
 let game = new Shooter();
 ASSET_MANAGER = new AssetManager();
 
@@ -588,14 +616,28 @@ let bullet = 'assets/image/laserRed16.png';
 let batttleship = 'assets/image/playerShip1_orange.png';
 
 let pew = 'assets/sound/pew.wav';
+let backgroundMusic = 'assets/sound/tgfcoder-FrozenJam-SeamlessLoop.ogg';
 
 ASSET_MANAGER.queueDownload(backgroundImage);
 ASSET_MANAGER.queueDownload(batttleship);
 ASSET_MANAGER.queueDownload(bullet);
 
+ASSET_MANAGER.queueSound(backgroundMusic);
 ASSET_MANAGER.queueSound(pew);
 
 ASSET_MANAGER.downloadAll(function() {
-    game.init(ctx);
-    game.start();
+    play.addEventListener('click', function(e) {
+
+        if (soundStatus.value == "on") {
+            playSound = true;
+        } else {
+            playSound = false;
+        }
+
+        mainMenu.style.display = "none";
+        canvas.style.display = "block"
+
+        game.init(ctx);
+        game.start();
+    }, false);
 });
