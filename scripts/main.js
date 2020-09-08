@@ -7,11 +7,11 @@ function resize(w, h) {
     canvas.width = w;
     canvas.height = h;
 
+    game.surfaceWidth = w;
+    game.surfaceWidth = h;
+
     if (game.ship) {
         game.ship.y = h-game.ship.height;
-        if (!game.bullet.fired) {
-            game.bullet.y = game.ship.y - game.bullet.height;
-        }
     }
 }
 
@@ -29,7 +29,7 @@ window.requestAnimFrame = (function() {
     window.mozRequestAnimationFrame     ||
     window.oRequestAnimationFrame       ||
     window.msRequestFrame               ||
-    function(/* function */ callback, /* DOMElement */ element) {
+    function(/** function */ callback, /** DOMElement */ element) {
         window.setTimeout(callback, 1000/60);
     };
 })();
@@ -661,8 +661,7 @@ Meteor.prototype.draw = function(ctx) {
 }
 
 Meteor.prototype.outsideOfScreen = function() {
-    // return Entity.prototype.outsideOfScreen.call(this, this.width, this.height);
-    return (this.x + this.width> this.game.surfaceWidth || this.x < 0 ||
+    return (this.x > this.game.surfaceWidth || this.x + this.width < 0 ||
         this.y > this.game.surfaceHeight);
 }
 
