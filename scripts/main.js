@@ -451,8 +451,8 @@ Entity.prototype.drawSpriteCentered = function(ctx) {
 }
 
 Entity.prototype.outsideOfScreen = function(width, height) {
-    return (this.x > this.game.surfaceWidth+width || this.x < 0 ||
-    this.y > this.game.surfaceHeight+height || this.y < 0);
+    return (this.x > this.game.surfaceWidth + width || this.x < 0 ||
+    this.y > this.game.surfaceHeight + height || this.y < 0);
 }
 
 Entity.prototype.rotateAndCache = function(image, angle) {
@@ -463,9 +463,9 @@ Entity.prototype.rotateAndCache = function(image, angle) {
     let offscreenCtx = offscreenCanvas.getContext('2d');
     offscreenCtx.save();
     offscreenCtx.translate(size/2, size/2);
-    offscreenCtx.rotate(angle + Math.PI/2);
-    offscreenCtx.translate(0, 0);
-    offscreenCtx.drawImage(image, -(image.width/2), -(image.height/2));
+    offscreenCtx.rotate(angle * Math.PI/180);
+    offscreenCtx.translate(-(image.width/2), -(image.height/2));
+    offscreenCtx.drawImage(image, 0, 0);
     offscreenCtx.restore();
     return offscreenCanvas;
 }
@@ -482,7 +482,11 @@ function Ship(game) {
     this.y = window.innerHeight - this.height;
     this.radius = radius(this.width, this.height);
     Entity.call(this, game, this.x, this.y, this.radius);
-    this.ticks = 0;
+    this.bulletTicks = 0;
+
+    this.meteors = [];
+    this.meteorTicks = 0;
+    this.bullets = [];
     
     // Background music
     this.bgm = ASSET_MANAGER.getAsset(backgroundMusic);
@@ -510,11 +514,19 @@ Ship.prototype.update = function() {
         this.x = this.game.ctx.canvas.width-this.width;
     }
 
-    this.ticks += this.game.clockTick;
-    if (this.ticks > .5) {
-        this.ticks = 0;
+    this.bulletTicks += this.game.clockTick;
+    if (this.bulletTicks > .5) {
+        this.bulletTicks = 0;
         this.shoot();
     }
+
+    this.meteorTicks += this.game.clockTick;
+    if (this.meteorTicks > 1) {
+        this.meteorTicks = 0;
+        this.addMeteor();
+    }
+
+    this.checkForCollision();
 }
 
 Ship.prototype.draw = function(ctx) {
@@ -525,19 +537,142 @@ Ship.prototype.draw = function(ctx) {
 Ship.prototype.shoot = function() {
     let bullet = new Bullet(this.game, this);
     this.game.addEntity(bullet);
+    this.bullets.push(bullet);
     if (playSound) {
-        ASSET_MANAGER.getAsset(pew).play();
+        let a = returnAsset(pew);
+        a.volume = .4;
+        a.play();
     }
 }
 
+Ship.prototype.addMeteor = function() {
+    let m = new Meteor(this.game);
+    this.game.addEntity(m);
+    this.meteors.push(m);
+}
+
+Ship.prototype.removeMeteors = function() {
+    for (let i=0; i<this.meteors.length; i++) {
+        if (this.meteors[i].outsideOfScreen()) {
+            this.meteors.splice(i, 1);
+        }
+    }
+}
+
+Ship.prototype.removeBullets = function() {
+    for (let i=0; i<this.bullets.length; i++) {
+        if (this.bullets[i].outsideOfScreen()) {
+            this.bullets.splice(i, 1);
+        }
+    }
+}
+
+Ship.prototype.checkForCollision = function() {
+    this.removeBullets();
+    this.removeMeteors();
+    for (let i=0; i<this.meteors.length; i++) {
+        for (let j=0; j<this.bullets.length; j++) {
+            if (this.bullets[j]==undefined) {
+                continue;
+            }
+
+            let bulletX = this.bullets[j].x;
+            let bulletY = this.bullets[j].y;
+            let bulletWidth = this.bullets[j].width;
+            // let bulletHeight = this.bullets[j].height;
+
+            if (this.meteors[i] != undefined) {
+                let meteorX = this.meteors[i].x;
+                let meteorY = this.meteors[i].y;
+                let meteorWidth = this.meteors[i].width;
+                let meteorHeight = this.meteors[i].height;
+
+                if (this.meteors[i] != undefined && this.bullets[j] != undefined) {
+                    if (bulletX + bulletWidth > meteorX && bulletX < meteorX + meteorWidth &&
+                        bulletY < meteorY + meteorHeight && bulletY > meteorY) {
+                        this.meteors[i].removeFromWorld = true;
+                        this.bullets[j].removeFromWorld = true;
+                        this.meteors.splice(i, 1);
+                        this.bullets.splice(j, 1);
+                        returnAsset(expl6).play();
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        if (this.meteors[i]==undefined) {
+            continue;
+        }
+    }
+}
+
+function Meteor(game) {
+    this.meteors = [
+        returnAsset(meteorBig1),
+        returnAsset(meteorBig2),
+        returnAsset(meteorMedium1),
+        returnAsset(meteorMedium3),
+        returnAsset(meteorSmall1),
+        returnAsset(meteorSmall2),
+        returnAsset(meteorTiny1)
+    ];
+
+    this.realSprite = this.meteors[randomInt(0, this.meteors.length)];
+    this.sprite = this.realSprite;
+    
+    this.angle = 0;
+    this.speedOfSpinning = randomInt(1, 7);
+
+    this.width = this.sprite.width;
+    this.height = this.sprite.height;
+
+    this.x = randomInt(0, game.ctx.canvas.width - this.width);
+    this.y = -10;
+    this.radius = radius(this.width, this.height);
+    Entity.call(this, game, this.x, this.y, this.radius);
+
+    this.xMove = randomFloat(-.5, .5);
+    this.yMove = randomFloat(0, 1.5);
+}
+
+Meteor.prototype = new Entity();
+Meteor.prototype.constructor = Meteor;
+
+Meteor.prototype.update = function() {
+    if (this.outsideOfScreen()) {
+        this.removeFromWorld = true;
+    } else {
+
+        this.sprite = this.rotateAndCache(this.realSprite, this.angle)
+        if (this.angle==360) {
+            this.angle = 0;
+        } else {
+            this.angle += this.speedOfSpinning;
+        }
+        this.x += this.xMove;
+        this.y += this.yMove;
+    }
+}
+
+Meteor.prototype.draw = function(ctx) {
+    Entity.prototype.draw.call(this);
+    ctx.drawImage(this.sprite, this.x, this.y, this.width, this.height);
+}
+
+Meteor.prototype.outsideOfScreen = function() {
+    // return Entity.prototype.outsideOfScreen.call(this, this.width, this.height);
+    return (this.x + this.width> this.game.surfaceWidth || this.x < 0 ||
+        this.y > this.game.surfaceHeight);
+}
 
 function Bullet(game, ship) {
     this.ship = ship;
     this.fired = true;
-    this.sprite = ASSET_MANAGER.getAsset(bullet)
+    this.sprite = ASSET_MANAGER.getAsset(bullet);
 
-    this.width = this.sprite.width * .9;
-    this.height = this.sprite.height * .5;
+    this.width = this.sprite.width * .7;
+    this.height = this.sprite.height * .4;
 
     this.x = ship.x + this.ship.width/2 - this.width/2;
     this.y = ship.y - this.ship.height/3 - this.height/2;
@@ -554,12 +689,8 @@ Bullet.prototype.update = function() {
     } else {
         this.y -= 3;
     }
-    if (this.outsideOfScreen(this.width, this.height)) {
+    if (this.outsideOfScreen()) {
         this.removeFromWorld = true;
-    }
-
-    if (this.game.click) {
-        this.shoot();
     }
 }
 
@@ -570,11 +701,15 @@ Bullet.prototype.draw = function(ctx) {
     }
 }
 
+Bullet.prototype.outSideOfScreen = function() {
+    return Entity.prototype.outsideOfScreen.call(this, this.width, this,height);
+}
+
 function Shooter() {
     GameEngine.call(this);
     this.lives = 10;
     this.score = 0;
-    this.showOutlines = true;;
+    this.showOutlines = true;
 }
 
 Shooter.prototype = new GameEngine();
@@ -582,10 +717,7 @@ Shooter.prototype.constructor = Shooter;
 
 Shooter.prototype.start = function() {
     this.ship = new Ship(this);
-    this.bullet = new Bullet(this, this.ship);
-
     this.addEntity(this.ship);
-    this.addEntity(this.bullet);
     GameEngine.prototype.start.call(this);
 }
 
@@ -606,6 +738,18 @@ soundStatus.onclick = () => {
     }
 }
 
+function returnAsset(src) {
+    return ASSET_MANAGER.getAsset(src);
+}
+
+function randomInt(start, end) {
+    return start + Math.floor(Math.random() * (end - start));
+}
+
+function randomFloat(start, end) {
+    return start + Math.random() * (end - start);
+}
+
 let playSound;
 
 let game = new Shooter();
@@ -614,16 +758,33 @@ ASSET_MANAGER = new AssetManager();
 let backgroundImage = 'assets/image/starfield.png';
 let bullet = 'assets/image/laserRed16.png';
 let batttleship = 'assets/image/playerShip1_orange.png';
+let meteorBig1 = 'assets/image/meteorBrown_big1.png';
+let meteorBig2 = 'assets/image/meteorBrown_big2.png';
+let meteorMedium1 = 'assets/image/meteorBrown_med1.png';
+let meteorMedium3 = 'assets/image/meteorBrown_med3.png';
+let meteorSmall1 = 'assets/image/meteorBrown_small1.png';
+let meteorSmall2 = 'assets/image/meteorBrown_small2.png';
+let meteorTiny1 = 'assets/image/meteorBrown_tiny1.png';
 
 let pew = 'assets/sound/pew.wav';
 let backgroundMusic = 'assets/sound/tgfcoder-FrozenJam-SeamlessLoop.ogg';
+let expl6 = 'assets/sound/expl6.wav'
 
 ASSET_MANAGER.queueDownload(backgroundImage);
 ASSET_MANAGER.queueDownload(batttleship);
 ASSET_MANAGER.queueDownload(bullet);
+ASSET_MANAGER.queueDownload(meteorBig1);
+ASSET_MANAGER.queueDownload(meteorBig2);
+ASSET_MANAGER.queueDownload(meteorMedium1);
+ASSET_MANAGER.queueDownload(meteorMedium3);
+ASSET_MANAGER.queueDownload(meteorSmall1);
+ASSET_MANAGER.queueDownload(meteorSmall2);
+ASSET_MANAGER.queueDownload(meteorTiny1);
+
 
 ASSET_MANAGER.queueSound(backgroundMusic);
 ASSET_MANAGER.queueSound(pew);
+ASSET_MANAGER.queueSound(expl6)
 
 ASSET_MANAGER.downloadAll(function() {
     play.addEventListener('click', function(e) {
