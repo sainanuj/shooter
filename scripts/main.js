@@ -3,8 +3,6 @@ let ctx = canvas.getContext("2d");
 
 let ASSET_MANAGER;
 
-screen.orientation.lock('portrait');
-
 function resize(w, h) {
     canvas.width = w;
     canvas.height = h;
