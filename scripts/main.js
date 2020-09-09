@@ -97,7 +97,7 @@ AssetManager.prototype.downloadAll = function(downloadCallback) {
         }, false);
 
         img.addEventListener('error', function() {
-            console.log('Could not load ' + this.src);
+            // console.log('Could not load ' + this.src);
             that.errorCount++;
             if (that.isDone()) {
                 downloadCallback();
@@ -366,7 +366,7 @@ GameEngine.prototype.startInput = function() {
 }
 
 GameEngine.prototype.init = function(ctx) {
-    console.log('Game has been initialized!');
+    // console.log('Game has been initialized!');
     this.ctx = ctx;
     this.surfaceWidth = this.ctx.canvas.width;
     this.surfaceHeight = this.ctx.canvas.height;
@@ -376,7 +376,7 @@ GameEngine.prototype.init = function(ctx) {
 }
 
 GameEngine.prototype.start = function() {
-    console.log('starting game...');
+    // console.log('starting game...');
     let that = this;
     (function gameLoop() {
         that.loop();
