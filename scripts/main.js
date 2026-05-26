@@ -851,7 +851,7 @@ Shooter.prototype.drawHUD = function(ctx) {
     ctx.fillStyle = "#ff3b30";
     ctx.shadowColor = "#ff3b30";
     ctx.textAlign = "right";
-    ctx.fillText("LIVES: " + this.lives, this.surfaceWidth - 25, 18);
+    ctx.fillText("LIVES: " + this.lives, this.surfaceWidth - 55, 18);
     
     ctx.restore();
 }
@@ -1008,6 +1008,15 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     restartBtn.onclick = () => {
+        try {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            }
+        } catch (err) {
+            console.warn("Fullscreen request deferred:", err);
+        }
         gameOverScreen.style.display = "none";
         floatingPauseBtn.style.display = "flex";
         game.reset();
@@ -1056,6 +1065,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Bootstrap play listener immediately to make buttons interactive instantly
     playBtn.addEventListener('click', function(e) {
+        try {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            }
+        } catch (err) {
+            console.warn("Fullscreen request deferred:", err);
+        }
+
         if (soundStatus.value == "on") {
             playSound = true;
         } else {

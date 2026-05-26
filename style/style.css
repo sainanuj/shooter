@@ -477,7 +477,11 @@ html, body {
 .floating-pause-btn {
     position: absolute;
     top: 15px;
+<<<<<<< HEAD
     right: 140px; /* Aligned beautifully next to Lives */
+=======
+    right: 15px; /* Positioned perfectly in top-right corner */
+>>>>>>> dev
     width: 26px;
     height: 26px;
     background: rgba(13, 11, 24, 0.6);
