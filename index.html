@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="Description" content="Author: Anuj Sain, Category: HTML5 Space Shooter Game with Cyberpunk Aesthetics">
     <title>Shooter - Cosmic Defender</title>
+    <!-- PWA Integration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f0ff">
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Shooter">
+    <link rel="apple-touch-icon" href="assets/image/icon-192.png">
     <!-- Import Google Fonts for high-end sci-fi typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,6 +41,9 @@
                 </div>
                 <div class="menu-btn-wrapper">
                     <button type="button" id="about" class="btn btn-secondary">ABOUT</button>
+                </div>
+                <div class="menu-btn-wrapper" id="install-btn-wrapper" style="display: none;">
+                    <button type="button" id="install_app" class="btn btn-secondary btn-cyan">INSTALL SYSTEM</button>
                 </div>
             </div>
 
@@ -144,4 +155,58 @@
     <canvas id="myCanvas"></canvas>
 </body>
 <script src="scripts/main.js"></script>
+<script>
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then((registration) => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch((err) => {
+                    console.error('ServiceWorker registration failed: ', err);
+                });
+        });
+    }
+
+    // PWA Install Prompt Handler
+    let deferredPrompt;
+    const installBtnWrapper = document.getElementById('install-btn-wrapper');
+    const installBtn = document.getElementById('install_app');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        // Update UI to show the install button
+        installBtnWrapper.style.display = 'block';
+        
+        console.log("'beforeinstallprompt' event was fired, showing INSTALL button.");
+    });
+
+    installBtn.addEventListener('click', (e) => {
+        // Hide our custom install button
+        installBtnWrapper.style.display = 'none';
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            } else {
+                console.log('User dismissed the install prompt');
+                // Re-show the install button if they declined
+                installBtnWrapper.style.display = 'block';
+            }
+            deferredPrompt = null;
+        });
+    });
+
+    // Hide the button if the app is successfully installed
+    window.addEventListener('appinstalled', (evt) => {
+        console.log('Shooter has been installed successfully!');
+        installBtnWrapper.style.display = 'none';
+    });
+</script>
 </html>
