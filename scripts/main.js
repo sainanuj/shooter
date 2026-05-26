@@ -196,7 +196,6 @@ function GameEngine() {
     this.halfSurfaceHeight = null;
     this.showOutlines = false;
     this.state = 'menu'; // 'menu' | 'playing' | 'gameover'
-    this.animationId = null; // Store animation frame ID for precise cancellation
 }
 
 GameEngine.prototype.startInput = function() {
@@ -239,15 +238,8 @@ GameEngine.prototype.start = function() {
     let that = this;
     (function gameLoop() {
         that.loop();
-        that.animationId = requestAnimationFrame(gameLoop, that.ctx.canvas);
+        requestAnimationFrame(gameLoop, that.ctx.canvas);
     })();
-}
-
-GameEngine.prototype.stop = function() {
-    if (this.animationId) {
-        cancelAnimationFrame(this.animationId);
-        this.animationId = null;
-    }
 }
 
 GameEngine.prototype.addEntity = function(entity) {
@@ -780,10 +772,6 @@ Shooter.prototype.spawnExplosion = function(x, y, color, count) {
 }
 
 Shooter.prototype.update = function() {
-    if (this.state === 'paused') {
-        return; // Freeze everything during pause!
-    }
-    
     if (this.starfield) {
         this.starfield.update();
     }
@@ -856,32 +844,12 @@ Shooter.prototype.drawHUD = function(ctx) {
     ctx.restore();
 }
 
-Shooter.prototype.togglePause = function() {
-    if (this.state === 'playing') {
-        this.state = 'paused';
-        if (this.bgm && playSound) {
-            this.bgm.pause();
-        }
-        document.getElementById('pause-screen').style.display = 'flex';
-        document.getElementById('floating-pause-btn').style.display = 'none';
-    } else if (this.state === 'paused') {
-        this.state = 'playing';
-        if (this.bgm && playSound) {
-            this.bgm.play().catch(() => {});
-        }
-        document.getElementById('pause-screen').style.display = 'none';
-        document.getElementById('floating-pause-btn').style.display = 'flex';
-    }
-};
-
 Shooter.prototype.gameOver = function() {
     this.state = 'gameover';
     
     if (this.bgm) {
         this.bgm.pause();
     }
-    
-    document.getElementById('floating-pause-btn').style.display = "none";
     
     let isNewRecord = false;
     if (this.score > this.highScore) {
@@ -977,39 +945,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (e.target == aboutModal) aboutModal.style.display = "none";
     };
 
-    // Pause overlay bindings
-    let resumeBtn = document.getElementById("resume-btn");
-    let abortBtn = document.getElementById("abort-btn");
-    let floatingPauseBtn = document.getElementById("floating-pause-btn");
-    let pauseScreen = document.getElementById("pause-screen");
-
-    resumeBtn.onclick = () => {
-        if (game) game.togglePause();
-    };
-
-    abortBtn.onclick = () => {
-        pauseScreen.style.display = "none";
-        mainMenu.style.display = "flex";
-        canvas.style.display = "none";
-        floatingPauseBtn.style.display = "none";
-        if (game) {
-            game.stop();
-            game.state = "menu";
-            if (game.bgm) {
-                game.bgm.pause();
-            }
-        }
-    };
-
-    floatingPauseBtn.onclick = () => {
-        if (game && game.state === 'playing') {
-            game.togglePause();
-        }
-    };
-
     restartBtn.onclick = () => {
         gameOverScreen.style.display = "none";
-        floatingPauseBtn.style.display = "flex";
         game.reset();
     };
 
@@ -1017,24 +954,8 @@ window.addEventListener('DOMContentLoaded', () => {
         gameOverScreen.style.display = "none";
         mainMenu.style.display = "flex";
         canvas.style.display = "none";
-        floatingPauseBtn.style.display = "none";
-        if (game) {
-            game.stop();
-            game.state = "menu";
-            if (game.bgm) {
-                game.bgm.pause();
-            }
-        }
+        game.state = "menu";
     };
-
-    // Keyboard pause binder
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyP' || e.code === 'Escape') {
-            if (game && (game.state === 'playing' || game.state === 'paused')) {
-                game.togglePause();
-            }
-        }
-    });
 
     // Instantiate and queue assets immediately
     ASSET_MANAGER = new AssetManager();
@@ -1064,11 +985,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
         mainMenu.style.display = "none";
         canvas.style.display = "block";
-        floatingPauseBtn.style.display = "flex";
-
-        if (game) {
-            game.stop(); // Stop any existing loop first!
-        }
 
         game = new Shooter(); // Make sure a clean game instance is constructed
         game.init(ctx);
