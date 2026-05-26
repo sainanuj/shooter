@@ -420,3 +420,93 @@ html, body {
     0%, 100% { opacity: 0.3; }
     50% { opacity: 1; }
 }
+
+/* --- Pause Screen Specific Styles --- */
+.pause-container {
+    background: radial-gradient(circle at center, rgba(13, 20, 35, 0.8) 0%, rgba(3, 2, 6, 0.95) 100%) !important;
+}
+
+.pause-panel {
+    animation: panel-glow-cyan 4s infinite alternate !important;
+}
+
+@keyframes panel-glow-cyan {
+    0% {
+        border-color: rgba(0, 240, 255, 0.25);
+        box-shadow: 0 0 40px rgba(0, 240, 255, 0.1);
+    }
+    100% {
+        border-color: rgba(0, 240, 255, 0.6);
+        box-shadow: 0 0 60px rgba(0, 240, 255, 0.3);
+    }
+}
+
+.text-cyan {
+    color: var(--neon-cyan) !important;
+    text-shadow: 0 0 12px rgba(0, 240, 255, 0.6) !important;
+}
+
+.glow-cyan {
+    background: linear-gradient(135deg, #ffffff 40%, var(--neon-cyan) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.7)) !important;
+}
+
+.bg-cyan {
+    background: var(--neon-cyan) !important;
+    box-shadow: 0 0 10px var(--neon-cyan) !important;
+}
+
+.btn-cyan {
+    color: #ffffff !important;
+    border: 2px solid var(--neon-cyan) !important;
+    background: linear-gradient(90deg, rgba(0, 240, 255, 0.1) 0%, rgba(0, 240, 255, 0.2) 100%) !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2) !important;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8) !important;
+}
+
+.btn-cyan:hover {
+    background: var(--neon-cyan) !important;
+    color: #000000 !important;
+    box-shadow: 0 0 30px var(--neon-cyan) !important;
+    text-shadow: none !important;
+}
+
+/* Floating Pause Button */
+.floating-pause-btn {
+    position: absolute;
+    top: 15px;
+    right: 140px; /* Aligned beautifully next to Lives */
+    width: 26px;
+    height: 26px;
+    background: rgba(13, 11, 24, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    z-index: 5;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    outline: none;
+}
+
+.floating-pause-btn:hover {
+    background: rgba(0, 240, 255, 0.2);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    transform: scale(1.1);
+}
+
+.floating-pause-btn:active {
+    transform: scale(0.95);
+}
+
+.pause-bar {
+    width: 3px;
+    height: 11px;
+    background-color: var(--neon-cyan);
+    border-radius: 1px;
+}
